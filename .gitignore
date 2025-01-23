@@ -1,0 +1,33 @@
+@'
+# Virtual Environment - ignore everything in these directories
+venv_py311/**
+venv_py311/**/
+**/venv_py311/**
+**/venv_py311/*
+venv/**
+env/**
+.env/**
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyd
+*.dll
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+
+# OS specific
+.DS_Store
+Thumbs.db
+'@ | Set-Content .gitignore -Encoding UTF8
