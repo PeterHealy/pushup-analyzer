@@ -4,23 +4,39 @@ from models.lstm_model import PushupModel
 from sklearn.model_selection import train_test_split
 import config
 
+def parse_timestamp(time_str):
+    """Convert various timestamp formats to seconds"""
+    if time_str.isdigit():
+        return int(time_str)
+    
+    parts = time_str.split(':')
+    if len(parts) == 2:
+        minutes, seconds = map(int, parts)
+        return minutes * 60 + seconds
+    elif len(parts) == 3:
+        hours, minutes, seconds = map(int, parts)
+        return hours * 3600 + minutes * 60 + seconds
+    else:
+        raise ValueError("Invalid timestamp format. Use seconds (37) or MM:SS (1:40) or HH:MM:SS (1:23:45)")
+
 def train_model(video_data):
-    """Train the push-up form analysis model"""
-    # Initialize components
+    # Convert timestamp strings to seconds
+    for segments in video_data["segments"]:
+        for segment in segments:
+            segment["start"] = parse_timestamp(str(segment["start"]))
+            segment["end"] = parse_timestamp(str(segment["end"]))
+    
     collector = VideoCollector()
     processor = DataProcessor()
     model = PushupModel()
-    
-    # Download videos if URLs are provided
+
     if "urls" in video_data:
         paths = collector.download_videos(video_data["urls"])
-        # Update video_data with downloaded paths
         video_data["videos"] = [
             {"path": path, "segments": segments}
             for path, segments in zip(paths, video_data["segments"])
         ]
     
-    # Process videos and collect sequences
     all_sequences = []
     all_labels = []
     
@@ -32,30 +48,29 @@ def train_model(video_data):
         all_sequences.extend(sequences)
         all_labels.extend(labels)
     
-    # Split data for training
     X_train, X_val, y_train, y_val = train_test_split(
         all_sequences,
         all_labels,
         test_size=0.2
     )
     
-    # Train model
     history = model.train(X_train, y_train, X_val, y_val)
     return history
 
 if __name__ == "__main__":
-    # Example usage
     video_data = {
         "urls": [
-            "https://youtube.com/...",  # Add your YouTube URLs
+            "https://youtube.com/watch?v=xxx",
+            "https://youtube.com/watch?v=yyy"
         ],
         "segments": [
             [
-                {"start": 10, "end": 15, "label": 1},
-                {"start": 20, "end": 25, "label": 0}
+                {"start": "37", "end": "1:40", "label": 1}
+            ],
+            [
+                {"start": "2:15", "end": "2:45", "label": 0}
             ]
         ]
     }
     
     history = train_model(video_data)
-    print("Training completed successfully!")
