@@ -1,4 +1,4 @@
-from pytube import YouTube
+import yt_dlp
 import os
 from typing import List, Dict
 import config
@@ -25,16 +25,27 @@ class VideoCollector:
         video_paths = []
         
         for i, url in enumerate(video_urls):
+            # Create unique filename for each video
+            output_path = os.path.join(self.output_dir, f'video_{i:02d}.mp4')
+            
+            if os.path.exists(output_path):
+                print(f"Video {i+1} already exists, skipping download")
+                video_paths.append(output_path)
+                continue
+            
+            ydl_opts = {
+                'format': 'best[ext=mp4]',
+                'outtmpl': output_path,  # Use our custom path
+                'quiet': False,
+                'no_warnings': True
+            }
+            
             try:
                 print(f"Downloading video {i+1}/{len(video_urls)}")
-                yt = YouTube(url)
-                # Get first progressive stream (has both video & audio)
-                video = yt.streams.filter(progressive=True, file_extension='mp4').first()
-                filename = f'video_{i}.mp4'
-                path = os.path.join(self.output_dir, filename)
-                video.download(output_path=self.output_dir, filename=filename)
-                video_paths.append(path)
-                print(f"Successfully downloaded: {filename}")
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    ydl.download([url])
+                    video_paths.append(output_path)
+                print(f"Successfully downloaded: {output_path}")
             except Exception as e:
                 print(f"Error downloading {url}: {e}")
         
