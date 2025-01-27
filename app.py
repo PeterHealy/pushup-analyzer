@@ -201,7 +201,10 @@ if __name__ == "__main__":
     if choice == "1":
         analyzer.run_live()
     elif choice == "2":
-        video_path = input("Enter the path to your video file: ")
+        print("\nExample paths:")
+        print("- Full path: C:\\Users\\peter\\Videos\\pushup.mp4")
+        print("- Relative path: data/videos/pushup.mp4")
+        video_path = input("\nEnter the path to your video file: ")
         analyzer.analyze_video_file(video_path)
     else:
         print("Invalid choice. Please run again and select 1 or 2.")
